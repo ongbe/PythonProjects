@@ -18,6 +18,7 @@ def get_each_line_data(file_path):
     lines = lines[9:]
     k_point_index = 1
     bulk_list = []
+    # 将每个 k 点下的数据从文件中分离出来
     while k_point_index <= k_points:
         bulk_data = lines[62 * (k_point_index - 1) + 2:
                           62 * (k_point_index - 1) + 62]
@@ -35,7 +36,7 @@ def get_each_line_data(file_path):
             (float(each.strip()) - fermi_energy) * 27.2114, 6) for each in bulk['energy_data']]
         max_energy_list.append(max(bulk['energy_data']))
         min_energy_list.append(min(bulk['energy_data']))
-    max_energy = round(float(max(max_energy_list)), 6)
+    max_energy = round(float(max(max_energy_list)), 6)  # 最小值和最大值的精度对交点个数的获取有一点影响
     min_energy = round(float(min(min_energy_list)), 6)
 
     line_data = []
@@ -53,10 +54,9 @@ def get_each_line_data(file_path):
 
 
 def get_intersection_point_number(lines_array, energy_values):
-    result = []
+    results = []
     total_intersection_point_number = 0
     write_header()
-    print('')
     for each_energy in energy_values:
         intersection_point_number = 0
         for array in lines_array:
@@ -71,15 +71,18 @@ def get_intersection_point_number(lines_array, energy_values):
                         print('{} <--{}--> {}'.format(array[i], array[i + 1], each_energy))
                         intersection_point_number += 1
                         total_intersection_point_number += 1
-        result.append({
+        result = {
             'energy_value': each_energy,
             'intersection_point_number': intersection_point_number
-        })
+        }
+        print(result)
+        results.append(result)
         save_to_csv([[each_energy, intersection_point_number]], file_path)
+    plot(results)
 
 
 def save_to_csv(content, file_path):
-    with open('.' + file_path.split('/')[-1].split('.')[0] + '.csv', 'a+', newline='', encoding='utf-8') as f:
+    with open('.' + file_path.split('/')[-1].split('.')[0] + '.csv', 'a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerows(content)
 
@@ -89,9 +92,26 @@ def write_header():
         writer = csv.writer(f)
         writer.writerows([['能量值 (eV)', '交点数']])
 
+     
+def plot(results):
+    energy_values = []
+    intersection_point_numbers = []
+    for each in results:
+        energy_value = each['energy_value']
+        intersection_point_number = each['intersection_point_number']
+        energy_values.append(energy_value)
+        intersection_point_numbers.append(intersection_point_number)
 
+    plt.plot(energy_values, intersection_point_numbers)
+    plt.xlim(energy_values[0], energy_values[-1])
+    plt.ylim(-1, max(intersection_point_numbers) + 1)
+    plt.xlabel('Energy (eV)')
+    plt.ylabel('Intersection point numbers')
+    plt.show()
+
+    
 if __name__ == '__main__':
-    file_path = './Substrate_BandStr.bands'  # 指定.bands文件所在的路径
+    file_path = './Substrate_BandStr.bands'  # 指定.bands文件所在的相对路径
     lines_data, min_energy, max_energy = get_each_line_data(file_path)
     step = float(input('输入一个合适的步长：'))
     energy_values = [round(each, 6) for each in list(
