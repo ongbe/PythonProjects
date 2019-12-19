@@ -87,7 +87,7 @@ def save_to_csv(content, file_path):
 def write_header():
     with open('.' + file_path.split('/')[-1].split('.')[0] + '.csv', 'w', newline='', encoding='utf-8-sig') as f:
         writer = csv.writer(f)
-        writer.writerows([['y值 (eV)', '交点数']])
+        writer.writerows([['能量值 (eV)', '交点数']])
 
 
 if __name__ == '__main__':
@@ -95,5 +95,5 @@ if __name__ == '__main__':
     lines_data, min_energy, max_energy = get_each_line_data(file_path)
     step = float(input('输入一个合适的步长：'))
     energy_values = [round(each, 6) for each in list(
-        np.arange(min_energy, max_energy, step))]
+        np.arange(min_energy, max_energy, step))]  # 使用numpy库生成浮点数序列
     get_intersection_point_number(lines_data, energy_values)
