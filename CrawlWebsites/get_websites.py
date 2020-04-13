@@ -1,3 +1,5 @@
+# usr/bin/python 3
+# -*- coding: utf-8 -*-
 import requests
 from bs4 import BeautifulSoup
 import csv
@@ -65,7 +67,7 @@ def set_csv_header():
 
 
 def main():
-    start_url = 'https://theporndude.com/zh'
+    start_url = 'https://xxx.com/zh'  # 网站还是隐藏一下好了
     category_list = []
     get_category_list(start_url, category_list)
     get_website_url_list(category_list)
