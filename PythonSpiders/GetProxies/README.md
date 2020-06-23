@@ -2,7 +2,7 @@
 
 1.代理所在网页
 
-![image-20200623185746635](C:%5CUsers%5Clei%5CAppData%5CRoaming%5CTypora%5Ctypora-user-images%5Cimage-20200623185746635.png)
+![homepage](imgs/1.png)
 
 2.初始化类
 
@@ -22,7 +22,7 @@ class Proxy(object):
 
 3.对网页源代码分析得到每条的代理的位置在 table > tbody > tr 下
 
-![image-20200623185951888](C:%5CUsers%5Clei%5CAppData%5CRoaming%5CTypora%5Ctypora-user-images%5Cimage-20200623185951888.png)
+![analysis](imgs/2.png)
 
 **写出以下代码爬取这部分内容：**
 
@@ -89,5 +89,5 @@ def save_proxies(proxy):
 
 6.运行结果
 
-![image-20200623194038565](C:%5CUsers%5Clei%5CAppData%5CRoaming%5CTypora%5Ctypora-user-images%5Cimage-20200623194038565.png)
+![results](imgs/3.png)
 
