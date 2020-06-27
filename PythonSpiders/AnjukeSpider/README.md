@@ -28,7 +28,7 @@ python main.py
 
 ## 4 运行截图
 
-![1](/screenshots/1.png)
+![1](screenshots/1.png)
 
 ## 5 运行结果
 
