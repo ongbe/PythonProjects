@@ -1,21 +1,26 @@
 #!usr/bin/ebv python3
 # -*- coding: utf-8 -*-
-from fake_useragent import UserAgent
-from bs4 import BeautifulSoup
 import requests
-import threading
-import traceback
-import random
+from bs4 import BeautifulSoup
 import time
+from fake_useragent import UserAgent
+import threading
+import random
 import csv
+import traceback
 
 
 class Anjuke(object):
     def __init__(self):
-        self.url = "https://cityname.anjuke.com/sale/p{}/#filtersort"  # cityname 是你所在城市的名称
+        self.url = "https://cityname.anjuke.com/sale/p{}/#filtersort"  # cityname 是城市的名字，请自行更改
         self.headers = {
+            "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+            "accept-encoding": "gzip, deflate, br",
+            "accept-language": "zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6",
+            "cache-control": "max-age=0",
+            "cookie": "",
+            "upgrade-insecure-requests": "1",
             "user-agent": UserAgent().random,
-            "cookie": ""
         }
         self.proxies = []
 
@@ -37,9 +42,9 @@ class Anjuke(object):
 
     def get_max_page_number(self):
         i = 1
-        while requests.get(self.url.format(str(i)), headers=self.headers, proxies=random.choice(self.proxies), timeout=10).url != "https://neijiang.anjuke.com/sale/#filtersort":
-            response = requests.get(self.url.format(str(i)), headers=self.headers, proxies=random.choice(self.proxies), timeout=10)
-            print("当前测试链接：", response.url)
+        while requests.get(self.url.format(str(i)), headers=self.headers, proxies=random.choice(self.proxies), timeout=3).url != "https://neijiang.anjuke.com/sale/#filtersort":
+            response = requests.get(self.url.format(str(i)), headers=self.headers, proxies=random.choice(self.proxies), timeout=3)
+            # print("当前测试链接：", response.url)
             i += 2
         max_page = i - 2
         return max_page
@@ -73,72 +78,71 @@ class Anjuke(object):
             response.raise_for_status()
             html = response.text
             soup = BeautifulSoup(html, "lxml")
-            if soup.select("div.basic-info.clearfix span")[0]:
+        except:
+            traceback.print_exc()
+        else:
+            if len(soup.select("div.basic-info.clearfix span")) != 0:
                 price = soup.select("div.basic-info.clearfix span")[0].text.strip().strip("万")
             else:
                 price = "null"
-            if soup.select("ul.houseInfo-detail-list.clearfix li"):
+            if len(soup.select("ul.houseInfo-detail-list.clearfix li")) != 0:
                 lis = soup.select("ul.houseInfo-detail-list.clearfix li")
-                if lis[0].select("div")[1]:
+                if len(lis[0].select("div")) != 0:
                     community = lis[0].select("div")[1].text.strip()
                 else:
                     community = "null"
-                if lis[1].select("div")[1]:
+                if len(lis[1].select("div")) != 0:
                     house_type = lis[1].select("div")[1].text.replace("\n", "").replace("\t", "")
                 else:
                     house_type = "null"
-                if lis[2].select("div")[1]:
+                if len(lis[2].select("div")) != 0:
                     unit_price = lis[2].select("div")[1].text.strip(" 元/m²")
                 else:
                     unit_price = "null"
-                if lis[3].select("div.houseInfo-content > p")[0]:
+                if len(lis[3].select("div.houseInfo-content > p")) != 0:
                     address = lis[3].select("div.houseInfo-content > p")[0].text.replace("\n", "").replace(" ", "")
                 else:
                     address = "null"
-                if lis[4].select("div")[1]:
+                if len(lis[4].select("div")) != 0:
                     area = lis[4].select("div")[1].text.strip("平方米")
                 else:
                     area = "null"
-                if lis[5].select("div")[1]:
+                if len(lis[5].select("div")) != 0:
                     down_payment = lis[5].select("div")[1].text.strip().strip("万")
                 else:
                     down_payment = "null"
-                if lis[6].select("div")[1]:
+                if len(lis[6].select("div")) != 0:
                     year = lis[6].select("div")[1].text.strip().strip("年")
                 else:
                     year = "null"
-                if lis[7].select("div")[1]:
+                if len(lis[7].select("div")) != 0:
                     orientation = lis[7].select("div")[1].text
                 else:
                     orientation = "null"
-                if lis[8].select("div.houseInfo-content > span")[0]:
+                if len(lis[8].select("div.houseInfo-content > span")) != 0:
                     monthly_payments = lis[8].select("div.houseInfo-content > span")[0].text.strip().strip("元")
                 else:
                     monthly_payments = "null"
-                if lis[9].select("div")[1]:
+                if len(lis[9].select("div")) != 0:
                     property_type = lis[9].select("div")[1].text
                 else:
                     property_type = "null"
-                if lis[10].select("div")[1]:
+                if len(lis[10].select("div")) != 0:
                     floor = lis[10].select("div")[1].text
                 else:
                     floor = "null"
-                if lis[11].select("div")[1]:
+                if len(lis[11].select("div")) != 0:
                     decoration = lis[11].select("div")[1].text
                 else:
                     decoration = "null"
-                if lis[13].select("div")[1]:
+                if len(lis[13].select("div")) != 0:
                     elevator = lis[13].select("div")[1].text
                 else:
                     elevator = "null"
-                if lis[15].select("div")[1]:
-                    property = lis[15].select("div")[1].text
+                if len(lis[15].select("div")) != 0:
+                    house_property = lis[15].select("div")[1].text
                 else:
-                    property = "null"
-                if lis[17].select("div")[1]:
-                    is_new_house = lis[17].select("div")[1].text
-                else:
-                    is_new_house = "null"
+                    house_property = "null"
             else:
                 community = "null"
                 house_type = "null"
@@ -153,8 +157,7 @@ class Anjuke(object):
                 floor = "null"
                 decoration = "null"
                 elevator = "null"
-                property = "null"
-                is_new_house = "null"
+                house_property = "null"
 
             house_info = {
                 "价格": price,
@@ -171,18 +174,16 @@ class Anjuke(object):
                 "所在楼层": floor,
                 "装修程度": decoration,
                 "配套电梯": elevator,
-                "产权性质": property,
-                "是否一手房源": is_new_house
+                "产权性质": house_property
             }
             print(house_info)
             self.save_data([value for value in house_info.values()])
-        except:
-            traceback.print_exc()
 
     @staticmethod
     def save_data(data):
         header = ["价格（万）", "小区", "房屋户型", "房屋单价（元/m²）", "所在位置", "建筑面积（平方米）", "参考首付（万）", "建造年代（年）", "房屋朝向", "参考月供",
-                  "房屋类型", "所在楼层", "装修程度", "配套电梯", "产权性质", "是否一手房源"]
+                  "房屋类型", "所在楼层", "装修程度", "配套电梯", "产权性质"]
+        # 编码格式设置为 utf-8-sig 可以防止写入中文时产生乱码
         with open(r"results.csv", "a", encoding="utf-8-sig", newline="") as f1:
             writer = csv.writer(f1)
             with open(r"results.csv", "r", encoding="utf-8", newline="") as f2:
@@ -197,29 +198,26 @@ class Anjuke(object):
     def run(self):
         print("============从文本获取代理============")
         self.add_proxies()
-        print("============获取完毕============")
+        print("=============代理获取完毕============")
         # print(self.proxies)
         start_page = 1
         end_page = input("请输入您想爬取的页数，输入后请回车：")
         if end_page == "":
-            print("您没有输入页数，程序将自动获取最大的页数...")
+            print("您没有输入页数，程序将自动获取最大的页数，请稍等片刻")
             print("=================================================")
-            # t = threading.Thread(target=self.get_max_page_number, args=())
-            # t.start()
-            # t.join()
             end_page = self.get_max_page_number()
             print("程序获取到的最大页数为：", end_page)
 
-        for page in range(start_page, int(end_page)):
-            print("============正在爬取第 %s 页============" % page)
+        for page in range(start_page, int(end_page) + 1):
+            print("============正在爬取第 %s 页数据============" % page)
             url = self.url.format(str(page))
             home_page = self.get_home_page(url)
             for detail_url in self.get_secondary_url(home_page):
                 # print(detail_url)
                 self.get_house_info(detail_url)
-                time.sleep(random.randint(3, 5))
-            print("============第 %s 页爬取完成============" % page)
-        time.sleep(random.randint(10, 15))  # 限制爬取速度
+                time.sleep(random.randint(3, 5))  # 限制爬取速度
+            print("============第 %s 页数据爬取完成============" % page)
+        time.sleep(random.randint(10, 15))    # 限制爬取速度
 
 
 if __name__ == "__main__":
