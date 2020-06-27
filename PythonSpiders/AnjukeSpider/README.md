@@ -2,15 +2,15 @@
 
 ## 1 文件说明
 
-**main.py：**程序文件
+main.py：程序文件
 
-**proxies.txt：**存储代理 IP 的文件，考虑到代理 IP 存活的时间并不长，你可以选择自己爬取代理 IP 并写入该文件，可以参考我的另一个爬虫项目：GetProxies（[地址在这里](https://github.com/leishufei/PythonProjects/tree/master/PythonSpiders/GetProxies )）
+proxies.txt：存储代理 IP 的文件，考虑到代理 IP 存活的时间并不长，你可以选择自己爬取代理 IP 并写入该文件，可以参考我的另一个爬虫项目：GetProxies（[地址在这里](https://github.com/leishufei/PythonProjects/tree/master/PythonSpiders/GetProxies )）
 
-**requirements.txt：**程序运行所需要的第三方库
+requirements.txt：程序运行所需要的第三方库
 
-**results.csv：**程序获取到的一部分数据
+results.csv：程序获取到的一部分数据
 
-**screenshots：**存放程序运行截图的文件夹
+screenshots：存放程序运行截图的文件夹
 
 ## 2 环境配置
 
