@@ -19,7 +19,7 @@
 
 **具体步骤：**
 
-1. 启动程序，程序界面如下图所示![program screeshot](screenshots/1.png)
+1. 启动程序，程序界面如下图所示![screenshot1](screenshots/1.png)
 2. 将之前计算得到名为 xxx_BandStr.bands 的文件拖入到路径栏中
 3. 输入能量扫描的步长，这个可以控制结果的精细程度，需要不断调整以达到你觉得最优的效果
 4. 程序运行完成后会在程序所在目录下生成一个 xxx_BandStr.csv 和 xxx_BandStr.png 文件
@@ -32,21 +32,19 @@
 
 ### Landauer 公式
 
-$$
-G=G_0 \sum_{n=1} ^{N} T_i
-$$
+>Github 中无法显示 latex 公式，所以只好用图片了
 
-$G$：量子电导率
+![screenshot2](screenshots/2.png)
 
-$G_0$：$2e^{2}/\hbar$，其中 $e$ 表示电子量，$\hbar$ 表示普朗克常数
+![screenshot3](screenshots/3.png)
 
-$N$：穿越费米能级（$E_f$）的传播模式数量
+**这是文献中的插图：**
 
-$T_i$：第 $i$ 个信道的传输概率，相当于是所求得的交点个数
+![screenshot4](screenshots/4.png)
 
-**下图是文献中的插图：**
+**这是脚本做出来的图（使用的数据不同）：**
 
-![figure](screenshots/2.png)
+![screenshot5](screenshots/5.png)
 
 
 
