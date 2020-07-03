@@ -1,12 +1,14 @@
-#!usr/bin/python 3
-# -*- coding: utf-8 *-
+#!usr/bin/ env python3
+# -*- coding: utf-8 -*-
 
-__version__ = "v 0.1"
+
 __author__ = "Shufei Lei"
+__version__ = "0.4"
 
 
 import re
 import tkinter as tk
+from tkinter import messagebox
 
 
 existing_element_list = [
@@ -122,21 +124,27 @@ existing_element_list = [
 ]
 
 
-def main():
-    def extract_element_and_number():
-        '''提取每个元素和与之对应的化学计量比。'''
-        _str = entry1.get()  # 获取用户输入的内容
-        re_str = re.findall(r"[A-Z][a-z]?[\d+\.?\d*]*", _str)  # 将元素和化学计量比组全部匹配出来，例如 Na2, B2, S
+class Calc(object):
+    """计算类"""
+    def __init__(self, user_chemical_formula, ocv):
+        self.chemical_formula = user_chemical_formula  # 获取用户输入的化学式
+        self.OCV = ocv  # 获取用户输入的开路电压值
+
+    def extract_element_and_number(self):
+        """提取每个元素和与之对应的化学计量比"""
+        # x?-->匹配x字符 0 次或 1 次
+        # x*-->匹配x字符0次或多次
+        re_str = re.findall(r"[A-Z][a-z]*[\d+\.?\d*]*", self.chemical_formula)  # 将元素和化学计量比组全部匹配出来，例如 Na2, B2, S
 
         for i in range(len(re_str)):
             if re_str[i][-1] not in [str(x) for x in range(10)]:
                 re_str[i] += "1"  # 为没有对应化学计量比的元素符号设置为 1，如 S1
 
-        global extracted_element_list
+        global extracted_element_list  # 设置为全局变量
         extracted_element_list = []
         for each in re_str:
             # 将上述提取到的 Na2, B2, S1之类的组再拆分成 Na 2, B 2, S 1
-            element = re.findall(r"[A-Z][a-z]?", each)[0]
+            element = re.findall(r"[A-Z][a-z]*", each)[0]
             num = float(re.findall(r"\d+\.?\d*", each)[0])
             extracted_element_list.append(
                 {
@@ -147,8 +155,9 @@ def main():
 
         return extracted_element_list
 
+    @staticmethod
     def get_reference_value(metal_atom):
-        '''判断应该取哪一个标准电极电势。'''
+        """判断应该取哪一个标准电极电势"""
         if metal_atom == "Li":
             referenece_value = 3.045
             return referenece_value
@@ -168,39 +177,46 @@ def main():
             referenece_value = 2.069
             return referenece_value
 
-        return None
+        return
 
-
-    def calc_with_metal_atom_mass():
-        '''计算考虑金属原子质量后的分子质量、比容量和能量密度（如果给出了 OCV）。'''
-        extracted_element_list = extract_element_and_number()
+    def calc_with_metal_atom_mass(self):
+        """计算考虑金属原子质量后的分子质量、比容量和能量密度（如果给出了 OCV）"""
+        extracted_element_list = self.extract_element_and_number()
         total_mass_with_metal_atom_mass = 0
         metal_atom_num = extracted_element_list[0]["num"]  # 获得金属元素对应的化学计量比
+        metal_atom = extracted_element_list[0]["element"]  # 获取金属元素符号
+
+        if metal_atom not in ["Li", "Na", "K", "Ca", "Mg", "Al"]:
+            messagebox.showerror("错误", "输入的金属元素符号不正确")
+            return
 
         for each in extracted_element_list:
             extracted_element = each["element"]  # 从用户输入的化学式获取每个元素符号
             extracted_num = each["num"]  # 从用户输入的化学式获取每个元素符号的化学计量比
-            for each in existing_element_list:
-                existing_element = each["element"]  # 从已有的元素列表中获取元素符号
 
-                if extracted_element == existing_element:
-                    mass = extracted_num * float(each["mass"])  # 计算每个提取元素的质量
-                    total_mass_with_metal_atom_mass += mass  # 计算总的分子质量
+            if extracted_element not in [each["element"] for each in existing_element_list]:
+                messagebox.showerror("提示", "{}输入错误，请检查".format(extracted_element))
+                return
+            else:
+                for each in existing_element_list:
+                    existing_element = each["element"]  # 从已有的元素列表中获取元素符号
+
+                    if extracted_element == existing_element:
+                        mass = extracted_num * float(each["mass"])  # 计算每个提取元素的质量
+                        total_mass_with_metal_atom_mass += mass  # 计算总的分子质量
 
         total_mass_with_metal_atom_mass = round(total_mass_with_metal_atom_mass, 2)
-        print("考虑金属质量的分子质量：", str(total_mass_with_metal_atom_mass) + " g/mol")
-
+        # print("考虑金属质量的分子质量：", str(total_mass_with_metal_atom_mass) + " g/mol")
         # 计算比容量，公式：C=nF/M，C--比容量，n--金属原子化学计量比，F--法拉第常数，M--总的分子质量
         specific_capacity_with_metal_atom_mass = round(metal_atom_num * 26801 / total_mass_with_metal_atom_mass, 2)
-        print("考虑金属质量的比容量：", str(specific_capacity_with_metal_atom_mass) + " mAh/g")
+        # print("考虑金属质量的比容量：", str(specific_capacity_with_metal_atom_mass) + " mAh/g")
 
-        if OCV:  # 判断用户是否输入了开路电压值（判断用户是否需要计算能量密度）
-            OCV = entry2.get()  # 获取用户输入的开路电压值
-            metal_atom = extracted_element_list[0]["element"]  # 获取金属元素符号
-            reference_value = get_reference_value(metal_atom)  # 获取参考标准电极电势
+        if self.OCV:  # 判断用户是否输入了开路电压值（判断用户是否需要计算能量密度）
+            reference_value = self.get_reference_value(metal_atom)  # 获取参考标准电极电势
             # 计算能量密度
-            energy_density_with_metal_atom_mass = round(specific_capacity_with_metal_atom_mass * (reference_value - float(OCV)), 2)
-            print("考虑金属质量的能量密度：", str(energy_density_with_metal_atom_mass) + " mWh/g")
+            energy_density_with_metal_atom_mass = round(
+                specific_capacity_with_metal_atom_mass * (reference_value - float(self.OCV)), 2)
+            # print("考虑金属质量的能量密度：", str(energy_density_with_metal_atom_mass) + " mWh/g")
 
             text2.delete('1.0', 'end')  # 清除输出框内的数据
             text2.insert("insert", energy_density_with_metal_atom_mass)  # 在输出框内插入数据（即输出数据）
@@ -208,35 +224,43 @@ def main():
         text1.delete('1.0', 'end')
         text1.insert("insert", specific_capacity_with_metal_atom_mass)
 
-        return None
+        return
 
-    def calc_without_metal_atom_mass():
-        '''计算不考虑金属原子质量后的分子质量、比容量和能量密度（如果给出了 OCV）。'''
-        extracted_element_list = extract_element_and_number()
+    def calc_without_metal_atom_mass(self):
+        """计算不考虑金属原子质量后的分子质量、比容量和能量密度（如果给出了 OCV）"""
+        extracted_element_list = self.extract_element_and_number()
         total_mass_without_atom_mass = 0
         metal_atom_num = extracted_element_list[0]["num"]
+        metal_atom = extracted_element_list[0]["element"]
+
+        if metal_atom not in ["Li", "Na", "K", "Ca", "Mg", "Al"]:
+            messagebox.showerror("错误", "输入的金属元素符号不正确")
+            return
 
         for each in extracted_element_list[1:]:
             extracted_element = each["element"]
             extracted_num = each["num"]
-            for each in existing_element_list:
-                existing_element = each["element"]
-                if extracted_element == existing_element:
-                    mass = extracted_num * float(each["mass"])
-                    total_mass_without_atom_mass += mass
+
+            if extracted_element not in [each["element"] for each in existing_element_list]:
+                messagebox.showerror("提示", "{}输入错误，请检查".format(extracted_element))
+                return
+            else:
+                for each in existing_element_list:
+                    existing_element = each["element"]
+
+                    if extracted_element == existing_element:
+                        mass = extracted_num * float(each["mass"])
+                        total_mass_without_atom_mass += mass
 
         total_mass_without_atom_mass = round(total_mass_without_atom_mass, 2)
-        print("考虑金属质量的分子质量：", str(total_mass_without_atom_mass) + " g/mol")
-
+        # print("考虑金属质量的分子质量：", str(total_mass_without_atom_mass) + " g/mol")
         specific_capacity_without_metal_atom_mass = round(metal_atom_num * 26801 / total_mass_without_atom_mass, 2)
-        print("不考虑考虑金属质量的比容量：", str(specific_capacity_without_metal_atom_mass) + " mAh/g")
+        # print("不考虑考虑金属质量的比容量：", str(specific_capacity_without_metal_atom_mass) + " mAh/g")
 
-        if OCV:
-            OCV = entry2.get()
-            metal_atom = extracted_element_list[0]["element"]
-            reference_value = get_reference_value(metal_atom)
-            energy_density_without_metal_atom_mass = round(specific_capacity_without_metal_atom_mass * (reference_value - float(OCV)), 2)
-            print("不考虑金属质量的能量密度：", str(energy_density_without_metal_atom_mass) + " mWh/g")
+        if self.OCV:
+            reference_value = self.get_reference_value(metal_atom)
+            energy_density_without_metal_atom_mass = round(specific_capacity_without_metal_atom_mass * (reference_value - float(self.OCV)), 2)
+            # print("不考虑金属质量的能量密度：", str(energy_density_without_metal_atom_mass) + " mWh/g")
 
             text4.delete('1.0', 'end')
             text4.insert("insert", energy_density_without_metal_atom_mass)
@@ -246,62 +270,106 @@ def main():
 
         return None
 
-    window = tk.Tk()  # 创建 GUI 窗口
-    window.title("比容量、能量密度计算器")  # 设置标题
-    window.geometry("750x250+400+200")  # 设置窗口大小和显示位置
 
-    entry1 = tk.Entry(window, width=30)  # 设置第一个输入框
-    entry1.grid(row=0, column=1)  # 设置输入框位置
+class Window(object):
+    """窗口类"""
+    def __init__(self):
+        self.window = tk.Tk()
 
-    entry2 = tk.Entry(window, width=30)  # 设置第二个输入框
-    entry2.grid(row=1, column=1)
+    def set_window(self):
+        """设置窗口属性"""
+        self.window.title("")
+        self.window.geometry("750x250+400+200")
 
-    # tk.Label-->设置标签，tk.E设置右对齐
-    label1 = tk.Label(window, text="请输入化学式，示例：Na2B2S（大小写要注意！）", font=("微软雅黑", 12))
-    label1.grid(row=0, column=0, sticky=tk.E)
+    def set_labels(self):
+        """设置标签"""
+        label1 = tk.Label(self.window, text="请输入化学式，示例：Na2B2S（大小写要注意！）", font=("微软雅黑", 12))
+        label1.grid(row=0, column=0, sticky=tk.E)
 
-    label2 = tk.Label(window, text="开路电压（V）", font=("微软雅黑", 12))
-    label2.grid(row=1, column=0, sticky=tk.E)
+        label2 = tk.Label(self.window, text="开路电压（V）", font=("微软雅黑", 12))
+        label2.grid(row=1, column=0, sticky=tk.E)
 
-    label3 = tk.Label(window, text="电极电势参考值：Li->3.045 V; Na->2.714 V; K->2.928 V", font=("微软雅黑", 12))
-    label3.grid(row=2, columnspan=2, sticky=tk.E)
+        label3 = tk.Label(self.window,
+                          text="电极电势参考值：Li->3.045 V; Na->2.714 V; K->2.928 V", font=("微软雅黑", 12))
+        label3.grid(row=2, columnspan=2, sticky=tk.E)
 
-    label4 = tk.Label(window, text="Ca->2.868 V; Mg->2.372 V; Al->2.069 V", font=("微软雅黑", 12))
-    label4.grid(row=3, columnspan=2, sticky=tk.E)
+        label4 = tk.Label(self.window, text="Ca->2.868 V; Mg->2.372 V; Al->2.069 V", font=("微软雅黑", 12))
+        label4.grid(row=3, columnspan=2, sticky=tk.E)
 
-    label5 = tk.Label(window, text="考虑金属原子质量的比容量（mAh/g）", font=("微软雅黑", 12))
-    label5.grid(row=4, column=0, sticky=tk.E)
+        label5 = tk.Label(self.window, text="考虑金属原子质量的比容量（mAh/g）", font=("微软雅黑", 12))
+        label5.grid(row=4, column=0, sticky=tk.E)
 
-    label6 = tk.Label(window, text="考虑金属原子质量的能量密度（mWh/g）", font=("微软雅黑", 12))
-    label6.grid(row=5, column=0, sticky=tk.E)
+        label6 = tk.Label(self.window, text="考虑金属原子质量的能量密度（mWh/g）", font=("微软雅黑", 12))
+        label6.grid(row=5, column=0, sticky=tk.E)
 
-    label7 = tk.Label(window, text="不考虑金属原子质量的比容量（mAh/g）", font=("微软雅黑", 12))
-    label7.grid(row=6, column=0, sticky=tk.E)
+        label7 = tk.Label(self.window, text="不考虑金属原子质量的比容量（mAh/g）", font=("微软雅黑", 12))
+        label7.grid(row=6, column=0, sticky=tk.E)
 
-    label8 = tk.Label(window, text="不考虑金属原子质量的能量密度（mWh/g）", font=("微软雅黑", 12))
-    label8.grid(row=7, column=0, sticky=tk.E)
+        label8 = tk.Label(self.window, text="不考虑金属原子质量的能量密度（mWh/g）", font=("微软雅黑", 12))
+        label8.grid(row=7, column=0, sticky=tk.E)
 
-    text1 = tk.Text(window, width=30, height=1.5)  # 设置输出框宽度和高度
-    text1.grid(row=4, column=1)  # 设置输出框位置
+    def set_entries(self):
+        """设置输入框"""
+        global entry1, entry2
+        entry1 = tk.Entry(self.window, width=30)
+        entry1.grid(row=0, column=1)
 
-    text2 = tk.Text(window, width=30, height=1.5)
-    text2.grid(row=5, column=1)
+        entry2 = tk.Entry(self.window, width=30)
+        entry2.grid(row=1, column=1)
 
-    text3 = tk.Text(window, width=30, height=1.5)
-    text3.grid(row=6, column=1)
+    def set_texts(self):
+        """设置输出框"""
+        global text1, text2, text3, text4
+        text1 = tk.Text(self.window, width=30, height=1.5)
+        text1.grid(row=4, column=1)
 
-    text4 = tk.Text(window, width=30, height=1.5)
-    text4.grid(row=7, column=1)
+        text2 = tk.Text(self.window, width=30, height=1.5)
+        text2.grid(row=5, column=1)
 
-    # 设置点击按钮
-    button1 = tk.Button(window, text="点击计算", command=calc_with_metal_atom_mass)
-    button1.grid(row=4, column=2, sticky=tk.W)  # 设置点击按钮位置
+        text3 = tk.Text(self.window, width=30, height=1.5)
+        text3.grid(row=6, column=1)
 
-    button2 = tk.Button(window, text="点击计算", command=calc_without_metal_atom_mass)
-    button2.grid(row=6, column=2, sticky=tk.W)
+        text4 = tk.Text(self.window, width=30, height=1.5)
+        text4.grid(row=7, column=1)
 
-    window.mainloop()  # 窗口循环（不自动关闭窗口）
+    def set_buttons(self):
+        """设置点击按钮"""
+        button1 = tk.Button(
+            self.window,
+            text="点击计算",
+            command=lambda: Calc(entry1.get(), entry2.get()).calc_with_metal_atom_mass())
+        button1.grid(row=4, column=2, sticky=tk.W)
+
+        button2 = tk.Button(
+            self.window,
+            text="点击计算",
+            command=lambda: Calc(entry1.get(), entry2.get()).calc_without_metal_atom_mass())
+        button2.grid(row=6, column=2, sticky=tk.W)
+
+        button3 = tk.Button(
+            self.window,
+            text="一键清除",
+            command=self.clear)
+        button3.grid(row=4, column=3, sticky=tk.W)
+
+    @staticmethod
+    def clear():
+        """输出框内所有内容"""
+        text1.delete('1.0', 'end')
+        text2.delete('1.0', 'end')
+        text3.delete('1.0', 'end')
+        text4.delete('1.0', 'end')
+
+    def execute_window(self):
+        """执行窗口"""
+        self.set_window()
+        self.set_labels()
+        self.set_entries()
+        self.set_buttons()
+        self.set_texts()
+        self.window.mainloop()
 
 
 if __name__ == "__main__":
-    main()
+    window = Window()
+    window.execute_window()
