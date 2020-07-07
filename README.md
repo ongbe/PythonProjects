@@ -17,8 +17,7 @@
 
 ### AndroidAutomation
 >  安卓自动化脚本（等待补坑...)
-* []()
 
 ### Other
 > 其他一些`Python`脚本
-* []()
+* [提醒休息小助手](https://github.com/leishufei/PythonProjects/tree/master/Other/RemindToRest)
