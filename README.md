@@ -16,7 +16,8 @@
 * [计算理论比容量和能量密度](https://github.com/leishufei/PythonProjects/tree/master/DataProcessing/CalcSpecificCapacity)
 
 ### AndroidAutomation
->  安卓自动化脚本（等待补坑...)
+>  安卓自动化脚本
+* [APP 自动阅读/刷视频 (薅羊毛)](https://github.com/leishufei/PythonProjects/tree/master/AndroidAutomation/AutoRead)
 
 ### Other
 > 其他一些`Python`脚本
